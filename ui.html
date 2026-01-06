@@ -1,17 +1,306 @@
-<h2>Rectangle Creator</h2>
-<p>Count: <input id="count" type="number" value="5"></p>
-<button id="create">Create</button>
-<button id="cancel">Cancel</button>
-<script>
-
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-shapes', count } }, '*')
-}
-
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
-
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 16px;
+      background: #ffffff;
+    }
+    
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #000000;
+    }
+    
+    .info-box {
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .info-box.warning {
+      background: #fff4e6;
+      color: #d46b08;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #000000;
+    }
+    
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #18a0fb;
+    }
+    
+    .variants-list {
+      margin-bottom: 16px;
+    }
+    
+    .variant-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    
+    .variant-item input[type="text"] {
+      flex: 1;
+    }
+    
+    .variant-item input[type="number"] {
+      width: 80px;
+    }
+    
+    .remove-btn {
+      background: #ff3333;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .remove-btn:hover {
+      background: #cc0000;
+    }
+    
+    .add-btn {
+      background: #18a0fb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    
+    .add-btn:hover {
+      background: #0d8ce8;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      flex: 1;
+      background: #18a0fb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .btn-primary:hover {
+      background: #0d8ce8;
+    }
+    
+    .btn-primary:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #000000;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Create Icon Component</h2>
+  
+  <div id="info-box" class="info-box warning">
+    Please select an icon in Figma
+  </div>
+  
+  <div class="form-group">
+    <label for="component-name">Component Name</label>
+    <input type="text" id="component-name" placeholder="Icon Component" value="Icon Component">
+  </div>
+  
+  <div class="form-group">
+    <label>Variants</label>
+    <div id="variants-list" class="variants-list">
+      <!-- Variants will be added here dynamically -->
+    </div>
+    <button class="add-btn" id="add-variant">+ Add Variant</button>
+  </div>
+  
+  <div class="actions">
+    <button class="btn-primary" id="create-component" disabled>Create Component</button>
+    <button class="btn-secondary" id="cancel">Cancel</button>
+  </div>
+  
+  <script>
+    let variants = [];
+    let hasSelection = false;
+    
+    // Listen for selection changes from plugin
+    window.addEventListener('message', (event) => {
+      const msg = event.data.pluginMessage;
+      if (msg.type === 'selection-changed') {
+        hasSelection = msg.hasSelection;
+        const infoBox = document.getElementById('info-box');
+        const createBtn = document.getElementById('create-component');
+        
+        if (hasSelection) {
+          infoBox.textContent = `Selected: ${msg.selectionName}`;
+          infoBox.className = 'info-box';
+          createBtn.disabled = variants.length === 0;
+        } else {
+          infoBox.textContent = 'Please select an icon in Figma';
+          infoBox.className = 'info-box warning';
+          createBtn.disabled = true;
+        }
+      }
+    });
+    
+    function renderVariants() {
+      const container = document.getElementById('variants-list');
+      container.innerHTML = '';
+      
+      variants.forEach((variant, index) => {
+        const item = document.createElement('div');
+        item.className = 'variant-item';
+        item.innerHTML = `
+          <input type="text" 
+                 class="variant-name" 
+                 placeholder="Variant name" 
+                 value="${variant.name}"
+                 data-index="${index}">
+          <input type="number" 
+                 class="variant-size" 
+                 placeholder="Size" 
+                 value="${variant.size}"
+                 min="1"
+                 data-index="${index}">
+          <button class="remove-btn" data-index="${index}">Remove</button>
+        `;
+        container.appendChild(item);
+      });
+      
+      // Add event listeners
+      document.querySelectorAll('.variant-name').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const index = parseInt(e.target.dataset.index);
+          variants[index].name = e.target.value;
+        });
+      });
+      
+      document.querySelectorAll('.variant-size').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const index = parseInt(e.target.dataset.index);
+          variants[index].size = parseInt(e.target.value) || 0;
+        });
+      });
+      
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.target.dataset.index);
+          variants.splice(index, 1);
+          renderVariants();
+          updateCreateButton();
+        });
+      });
+    }
+    
+    function updateCreateButton() {
+      const createBtn = document.getElementById('create-component');
+      const hasValidVariants = variants.length > 0 && 
+        variants.every(v => v.name.trim() && v.size > 0);
+      createBtn.disabled = !hasSelection || !hasValidVariants;
+    }
+    
+    document.getElementById('add-variant').addEventListener('click', () => {
+      const defaultSize = variants.length > 0 
+        ? variants[variants.length - 1].size + 8 
+        : 16;
+      variants.push({
+        name: `Size ${variants.length + 1}`,
+        size: defaultSize
+      });
+      renderVariants();
+      updateCreateButton();
+    });
+    
+    document.getElementById('create-component').addEventListener('click', () => {
+      const componentName = document.getElementById('component-name').value || 'Icon Component';
+      
+      if (variants.length === 0) {
+        alert('Please add at least one variant');
+        return;
+      }
+      
+      const invalidVariants = variants.filter(v => !v.name.trim() || v.size <= 0);
+      if (invalidVariants.length > 0) {
+        alert('Please fill in all variant names and sizes');
+        return;
+      }
+      
+      parent.postMessage({
+        pluginMessage: {
+          type: 'create-component',
+          componentName: componentName,
+          variants: variants
+        }
+      }, '*');
+    });
+    
+    document.getElementById('cancel').addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+    
+    // Initialize with one variant
+    variants.push({ name: 'Small', size: 16 });
+    renderVariants();
+    updateCreateButton();
+  </script>
+</body>
+</html>
