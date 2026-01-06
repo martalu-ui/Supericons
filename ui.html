@@ -166,6 +166,11 @@
   </div>
   
   <div class="form-group">
+    <label for="property-name">Property Name</label>
+    <input type="text" id="property-name" placeholder="Size" value="Size">
+  </div>
+  
+  <div class="form-group">
     <label>Variants</label>
     <div id="variants-list" class="variants-list">
       <!-- Variants will be added here dynamically -->
@@ -272,6 +277,7 @@
     
     document.getElementById('create-component').addEventListener('click', () => {
       const componentName = document.getElementById('component-name').value || 'Icon Component';
+      const propertyName = document.getElementById('property-name').value || 'Size';
       
       if (variants.length === 0) {
         alert('Please add at least one variant');
@@ -284,10 +290,16 @@
         return;
       }
       
+      if (!propertyName.trim()) {
+        alert('Please enter a property name');
+        return;
+      }
+      
       parent.postMessage({
         pluginMessage: {
           type: 'create-component',
           componentName: componentName,
+          propertyName: propertyName,
           variants: variants
         }
       }, '*');
