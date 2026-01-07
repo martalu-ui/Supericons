@@ -10,29 +10,33 @@
     
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      padding: 16px;
-      background: #ffffff;
+      padding: 20px;
+      background: #fafafa;
+      color: #1a1a1a;
     }
     
     h2 {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
-      margin-bottom: 16px;
-      color: #000000;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+      letter-spacing: -0.01em;
     }
     
     .info-box {
-      padding: 12px;
-      background: #f0f0f0;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      font-size: 12px;
+      padding: 12px 16px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 13px;
       color: #666;
+      border: 1px solid #e5e5e5;
     }
     
     .info-box.warning {
-      background: #fff4e6;
-      color: #d46b08;
+      background: #fff8e1;
+      color: #b8860b;
+      border-color: #ffd54f;
     }
     
     .form-group {
@@ -50,17 +54,21 @@
     input[type="text"],
     input[type="number"] {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      font-size: 12px;
+      padding: 10px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      font-size: 13px;
       font-family: inherit;
+      background: #ffffff;
+      color: #1a1a1a;
+      transition: all 0.2s ease;
     }
     
     input[type="text"]:focus,
     input[type="number"]:focus {
       outline: none;
-      border-color: #18a0fb;
+      border-color: #666;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
     }
     
     .variants-list {
@@ -69,8 +77,8 @@
     
     .variant-item {
       display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 10px;
+      margin-bottom: 10px;
       align-items: center;
     }
     
@@ -79,37 +87,60 @@
     }
     
     .variant-item input[type="number"] {
-      width: 80px;
+      width: 90px;
     }
     
     .remove-btn {
-      background: #ff3333;
-      color: white;
+      background: #2a2a2a;
+      color: #ffffff;
       border: none;
-      border-radius: 4px;
-      padding: 6px 12px;
+      border-radius: 6px;
+      padding: 8px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
     }
     
     .remove-btn:hover {
-      background: #cc0000;
+      background: #1a1a1a;
+    }
+    
+    .remove-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .remove-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
     }
     
     .add-btn {
-      background: #18a0fb;
+      background: #2a2a2a;
       color: white;
       border: none;
-      border-radius: 4px;
-      padding: 8px 16px;
+      border-radius: 6px;
+      padding: 10px 16px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 13px;
+      font-weight: 500;
       width: 100%;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
     }
     
     .add-btn:hover {
-      background: #0d8ce8;
+      background: #1a1a1a;
+    }
+    
+    .add-btn:active {
+      transform: scale(0.98);
     }
     
     .actions {
@@ -119,37 +150,51 @@
     
     .btn-primary {
       flex: 1;
-      background: #18a0fb;
+      background: #1a1a1a;
       color: white;
       border: none;
-      border-radius: 4px;
-      padding: 10px;
+      border-radius: 6px;
+      padding: 12px;
       cursor: pointer;
       font-size: 13px;
       font-weight: 500;
+      transition: all 0.2s ease;
     }
     
     .btn-primary:hover {
-      background: #0d8ce8;
+      background: #000000;
+    }
+    
+    .btn-primary:active {
+      transform: scale(0.98);
     }
     
     .btn-primary:disabled {
-      background: #cccccc;
+      background: #d0d0d0;
+      color: #999;
       cursor: not-allowed;
+      transform: none;
     }
     
     .btn-secondary {
-      background: #f0f0f0;
-      color: #000000;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 20px;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      padding: 12px 20px;
       cursor: pointer;
       font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
     
     .btn-secondary:hover {
-      background: #e0e0e0;
+      background: #e8e8e8;
+      border-color: #b0b0b0;
+    }
+    
+    .btn-secondary:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
@@ -162,12 +207,12 @@
   
   <div class="form-group">
     <label for="component-name">Component Name</label>
-    <input type="text" id="component-name" placeholder="Icon Component" value="Icon Component">
+    <input type="text" id="component-name" placeholder="Icon Component">
   </div>
   
   <div class="form-group">
     <label for="property-name">Property Name</label>
-    <input type="text" id="property-name" placeholder="Size" value="Size">
+    <input type="text" id="property-name" placeholder="Size">
   </div>
   
   <div class="form-group">
@@ -187,9 +232,98 @@
     let variants = [];
     let hasSelection = false;
     
-    // Listen for selection changes from plugin
+    // Save configuration to plugin storage
+    function saveConfig() {
+      const config = {
+        componentName: document.getElementById('component-name').value,
+        propertyName: document.getElementById('property-name').value,
+        variants: variants
+      };
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-config',
+          config: config
+        }
+      }, '*');
+    }
+    
+    // Load configuration from plugin storage
+    function loadConfig(config) {
+      if (!config) {
+        // Set defaults if no config
+        const componentNameInput = document.getElementById('component-name');
+        const propertyNameInput = document.getElementById('property-name');
+        if (componentNameInput && !componentNameInput.value) {
+          componentNameInput.value = 'Icon Component';
+        }
+        if (propertyNameInput && !propertyNameInput.value) {
+          propertyNameInput.value = 'Size';
+        }
+        if (variants.length === 0) {
+          variants.push({ name: 'Small', size: 16 });
+          renderVariants();
+          updateCreateButton();
+        }
+        saveConfig();
+        return;
+      }
+      
+      // Restore component name
+      const componentNameInput = document.getElementById('component-name');
+      if (config.componentName && componentNameInput) {
+        componentNameInput.value = config.componentName;
+      } else if (componentNameInput && !componentNameInput.value) {
+        componentNameInput.value = 'Icon Component';
+      }
+      
+      // Restore property name
+      const propertyNameInput = document.getElementById('property-name');
+      if (config.propertyName && propertyNameInput) {
+        propertyNameInput.value = config.propertyName;
+      } else if (propertyNameInput && !propertyNameInput.value) {
+        propertyNameInput.value = 'Size';
+      }
+      
+      // Restore variants
+      if (config.variants && Array.isArray(config.variants) && config.variants.length > 0) {
+        variants = config.variants.map(v => ({
+          name: v.name || '',
+          size: v.size || 16
+        }));
+        renderVariants();
+        updateCreateButton();
+      } else if (variants.length === 0) {
+        variants.push({ name: 'Small', size: 16 });
+        renderVariants();
+        updateCreateButton();
+      }
+    }
+    
+    // Request config from plugin on load
+    function initialize() {
+      parent.postMessage({
+        pluginMessage: {
+          type: 'request-config'
+        }
+      }, '*');
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+      initialize();
+    }
+    
+    // Listen for messages from plugin
     window.addEventListener('message', (event) => {
       const msg = event.data.pluginMessage;
+      
+      if (msg.type === 'load-config') {
+        loadConfig(msg.config);
+        return;
+      }
+      
       if (msg.type === 'selection-changed') {
         hasSelection = msg.hasSelection;
         const infoBox = document.getElementById('info-box');
@@ -226,7 +360,11 @@
                  value="${variant.size}"
                  min="1"
                  data-index="${index}">
-          <button class="remove-btn" data-index="${index}">Remove</button>
+          <button class="remove-btn" data-index="${index}" aria-label="Remove variant">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+          </button>
         `;
         container.appendChild(item);
       });
@@ -236,6 +374,7 @@
         input.addEventListener('input', (e) => {
           const index = parseInt(e.target.dataset.index);
           variants[index].name = e.target.value;
+          saveConfig();
         });
       });
       
@@ -243,6 +382,7 @@
         input.addEventListener('input', (e) => {
           const index = parseInt(e.target.dataset.index);
           variants[index].size = parseInt(e.target.value) || 0;
+          saveConfig();
         });
       });
       
@@ -252,6 +392,7 @@
           variants.splice(index, 1);
           renderVariants();
           updateCreateButton();
+          saveConfig();
         });
       });
     }
@@ -263,6 +404,10 @@
       createBtn.disabled = !hasSelection || !hasValidVariants;
     }
     
+    // Save config when component name or property name changes
+    document.getElementById('component-name').addEventListener('input', saveConfig);
+    document.getElementById('property-name').addEventListener('input', saveConfig);
+    
     document.getElementById('add-variant').addEventListener('click', () => {
       const defaultSize = variants.length > 0 
         ? variants[variants.length - 1].size + 8 
@@ -273,6 +418,7 @@
       });
       renderVariants();
       updateCreateButton();
+      saveConfig();
     });
     
     document.getElementById('create-component').addEventListener('click', () => {
@@ -308,11 +454,6 @@
     document.getElementById('cancel').addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
     });
-    
-    // Initialize with one variant
-    variants.push({ name: 'Small', size: 16 });
-    renderVariants();
-    updateCreateButton();
   </script>
 </body>
 </html>
