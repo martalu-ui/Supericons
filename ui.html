@@ -87,7 +87,73 @@
     }
     
     .variant-item input[type="number"] {
-      width: 90px;
+      width: 80px;
+    }
+    
+    .variant-item input[type="number"].stroke-input {
+      width: 70px;
+    }
+    
+    .variant-item input[type="number"].stroke-input:disabled {
+      background: #f5f5f5;
+      color: #999;
+      cursor: not-allowed;
+    }
+    
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: #d0d0d0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+    
+    .toggle-switch.active {
+      background: #2a2a2a;
+    }
+    
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+    }
+    
+    .toggle-switch.active::after {
+      transform: translateX(16px);
+    }
+    
+    .stroke-toggle-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #fafafa;
+      border-radius: 6px;
+      border: 1px solid #e5e5e5;
+    }
+    
+    .stroke-toggle-section label {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a1a;
+      flex: 1;
     }
     
     .remove-btn {
@@ -221,6 +287,16 @@
       <!-- Variants will be added here dynamically -->
     </div>
     <button class="add-btn" id="add-variant">+ Add Variant</button>
+    
+    <div class="stroke-toggle-section">
+      <label for="stroke-toggle">Enable Stroke</label>
+      <div class="toggle-switch" id="stroke-toggle"></div>
+    </div>
+    
+    <div class="stroke-toggle-section">
+      <label for="outline-toggle">Convert to Outline Stroke + Flatten</label>
+      <div class="toggle-switch" id="outline-toggle"></div>
+    </div>
   </div>
   
   <div class="actions">
@@ -228,16 +304,27 @@
     <button class="btn-secondary" id="cancel">Cancel</button>
   </div>
   
-  <script>
+<script>
     let variants = [];
     let hasSelection = false;
+    let strokeEnabled = false;
+    let outlineFlattenEnabled = false;
+    
+    // Update stroke inputs based on global toggle
+    // This function is called when toggle changes to re-render variants
+    function updateStrokeInputs() {
+      // The inputs are shown/hidden by re-rendering variants
+      // This function is kept for compatibility but renderVariants handles visibility
+    }
     
     // Save configuration to plugin storage
     function saveConfig() {
       const config = {
         componentName: document.getElementById('component-name').value,
         propertyName: document.getElementById('property-name').value,
-        variants: variants
+        variants: variants,
+        strokeEnabled: strokeEnabled,
+        outlineFlattenEnabled: outlineFlattenEnabled
       };
       parent.postMessage({
         pluginMessage: {
@@ -284,11 +371,38 @@
         propertyNameInput.value = 'Size';
       }
       
+      // Restore stroke toggle state
+      if (config.strokeEnabled !== undefined) {
+        strokeEnabled = config.strokeEnabled;
+        const toggle = document.getElementById('stroke-toggle');
+        if (toggle) {
+          if (strokeEnabled) {
+            toggle.classList.add('active');
+          } else {
+            toggle.classList.remove('active');
+          }
+        }
+      }
+      
+      // Restore outline flatten toggle state
+      if (config.outlineFlattenEnabled !== undefined) {
+        outlineFlattenEnabled = config.outlineFlattenEnabled;
+        const outlineToggle = document.getElementById('outline-toggle');
+        if (outlineToggle) {
+          if (outlineFlattenEnabled) {
+            outlineToggle.classList.add('active');
+          } else {
+            outlineToggle.classList.remove('active');
+          }
+        }
+      }
+      
       // Restore variants
       if (config.variants && Array.isArray(config.variants) && config.variants.length > 0) {
         variants = config.variants.map(v => ({
           name: v.name || '',
-          size: v.size || 16
+          size: v.size || 16,
+          stroke: v.stroke
         }));
         renderVariants();
         updateCreateButton();
@@ -297,6 +411,8 @@
         renderVariants();
         updateCreateButton();
       }
+      
+      updateStrokeInputs();
     }
     
     // Request config from plugin on load
@@ -360,6 +476,15 @@
                  value="${variant.size}"
                  min="1"
                  data-index="${index}">
+          ${strokeEnabled ? `
+          <input type="number" 
+                 class="variant-size stroke-input" 
+                 placeholder="Stroke" 
+                 value="${variant.stroke || 1.5}"
+                 min="0"
+                 step="0.5"
+                 data-index="${index}">
+          ` : ''}
           <button class="remove-btn" data-index="${index}" aria-label="Remove variant">
             <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -378,10 +503,30 @@
         });
       });
       
-      document.querySelectorAll('.variant-size').forEach(input => {
+      document.querySelectorAll('.variant-size:not(.stroke-input)').forEach(input => {
         input.addEventListener('input', (e) => {
           const index = parseInt(e.target.dataset.index);
           variants[index].size = parseInt(e.target.value) || 0;
+          saveConfig();
+        });
+      });
+      
+      // Set default stroke values when enabled (inputs are already rendered with correct values)
+      if (strokeEnabled) {
+        document.querySelectorAll('.stroke-input').forEach(input => {
+          const index = parseInt(input.dataset.index);
+          if (variants[index] && !variants[index].stroke) {
+            variants[index].stroke = 1.5;
+            input.value = 1.5;
+          }
+        });
+      }
+      
+      document.querySelectorAll('.stroke-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const index = parseInt(e.target.dataset.index);
+          const strokeValue = parseFloat(e.target.value);
+          variants[index].stroke = isNaN(strokeValue) || strokeValue <= 0 ? undefined : strokeValue;
           saveConfig();
         });
       });
@@ -404,6 +549,42 @@
       createBtn.disabled = !hasSelection || !hasValidVariants;
     }
     
+    // Global stroke toggle
+    document.getElementById('stroke-toggle').addEventListener('click', () => {
+      strokeEnabled = !strokeEnabled;
+      const toggle = document.getElementById('stroke-toggle');
+      if (strokeEnabled) {
+        toggle.classList.add('active');
+        // Set default stroke value for all variants that don't have one
+        variants.forEach((variant) => {
+          if (!variant.stroke) {
+            variant.stroke = 1.5;
+          }
+        });
+      } else {
+        toggle.classList.remove('active');
+        // Clear stroke values
+        variants.forEach(variant => {
+          variant.stroke = undefined;
+        });
+      }
+      // Re-render variants to show/hide stroke inputs
+      renderVariants();
+      saveConfig();
+    });
+    
+    // Global outline flatten toggle
+    document.getElementById('outline-toggle').addEventListener('click', () => {
+      outlineFlattenEnabled = !outlineFlattenEnabled;
+      const toggle = document.getElementById('outline-toggle');
+      if (outlineFlattenEnabled) {
+        toggle.classList.add('active');
+      } else {
+        toggle.classList.remove('active');
+      }
+      saveConfig();
+    });
+    
     // Save config when component name or property name changes
     document.getElementById('component-name').addEventListener('input', saveConfig);
     document.getElementById('property-name').addEventListener('input', saveConfig);
@@ -414,7 +595,8 @@
         : 16;
       variants.push({
         name: `Size ${variants.length + 1}`,
-        size: defaultSize
+        size: defaultSize,
+        stroke: undefined
       });
       renderVariants();
       updateCreateButton();
@@ -446,7 +628,9 @@
           type: 'create-component',
           componentName: componentName,
           propertyName: propertyName,
-          variants: variants
+          variants: variants,
+          strokeEnabled: strokeEnabled,
+          outlineFlattenEnabled: outlineFlattenEnabled
         }
       }, '*');
     });
@@ -454,6 +638,6 @@
     document.getElementById('cancel').addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
     });
-  </script>
+</script>
 </body>
 </html>
