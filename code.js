@@ -153,22 +153,26 @@ figma.showUI(__html__, { width: 400, height: 600 });
 
 // Check if there's a selection when plugin opens
 if (figma.currentPage.selection.length > 0) {
-  const selection = figma.currentPage.selection[0];
+  const selections = figma.currentPage.selection;
+  const selectionNames = selections.map(s => s.name);
   figma.ui.postMessage({ 
     type: 'selection-changed', 
     hasSelection: true,
-    selectionName: selection.name
+    selectionNames: selectionNames,
+    selectionCount: selections.length
   });
 }
 
 // Listen for selection changes
 figma.on('selectionchange', () => {
   if (figma.currentPage.selection.length > 0) {
-    const selection = figma.currentPage.selection[0];
+    const selections = figma.currentPage.selection;
+    const selectionNames = selections.map(s => s.name);
     figma.ui.postMessage({ 
       type: 'selection-changed', 
       hasSelection: true,
-      selectionName: selection.name
+      selectionNames: selectionNames,
+      selectionCount: selections.length
     });
   } else {
     figma.ui.postMessage({ 
@@ -239,6 +243,9 @@ figma.ui.onmessage = async (msg) => {
       }
       
       const selectedNodes = figma.currentPage.selection;
+      
+      // Track component sets to position them side by side
+      const createdComponentSets = [];
       
       // Process each selected icon
       selectedNodes.forEach((selectedNode, nodeIndex) => {
@@ -542,13 +549,15 @@ figma.ui.onmessage = async (msg) => {
       variantComponents.forEach((component, index) => {
         figma.currentPage.appendChild(component);
         // Position components horizontally
-        // Calculate position based on node index and component index
-        const baseX = selectedNode.x;
-        const baseY = selectedNode.y + selectedNode.height + 50 + (nodeIndex * 200); // Stack vertically for each icon
+        // All components of the same icon should be positioned together
+        // The component set will be positioned side by side later
+        const baseY = selectedNode.y + selectedNode.height + 50;
         if (index === 0) {
-          component.x = baseX;
+          // First component of this icon
+          component.x = selectedNode.x;
           component.y = baseY;
         } else {
+          // Subsequent components of same icon - position horizontally
           const prevComponent = variantComponents[index - 1];
           component.x = prevComponent.x + prevComponent.width + 16;
           component.y = prevComponent.y;
@@ -584,10 +593,21 @@ figma.ui.onmessage = async (msg) => {
             componentSet.counterAxisSizingMode = 'AUTO';
           }
           
-          // Position the component set (stack vertically for multiple icons)
-          const baseY = selectedNode.y + selectedNode.height + 50 + (nodeIndex * 200);
-          componentSet.x = selectedNode.x;
-          componentSet.y = baseY;
+          // Position the component set side by side with previous ones
+          const baseY = selectedNode.y + selectedNode.height + 50;
+          if (nodeIndex === 0) {
+            // First component set
+            componentSet.x = selectedNode.x;
+            componentSet.y = baseY;
+          } else {
+            // Position next to previous component set
+            const prevComponentSet = createdComponentSets[nodeIndex - 1];
+            componentSet.x = prevComponentSet.x + prevComponentSet.width + 50; // 50px spacing between sets
+            componentSet.y = baseY;
+          }
+          
+          // Store this component set for next positioning
+          createdComponentSets.push(componentSet);
           
           // Try to apply stroke directly to component set
           // Note: ComponentSetNode may not support strokes in the API

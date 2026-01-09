@@ -35,6 +35,26 @@
       font-size: 13px;
       color: #666;
       border: 1px solid #e5e5e5;
+      max-height: 120px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    
+    .info-box .selection-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .info-box .selection-list li {
+      margin: 4px 0;
+      padding: 0;
+    }
+    
+    .info-box .selection-ellipsis {
+      font-style: italic;
+      color: #999;
+      margin-top: 4px;
     }
     
     .info-box.warning {
@@ -466,7 +486,27 @@
         const createBtn = document.getElementById('create-component');
         
         if (hasSelection) {
-          infoBox.textContent = `Selected: ${msg.selectionName}`;
+          const selectionNames = msg.selectionNames || [];
+          const selectionCount = msg.selectionCount || selectionNames.length;
+          
+          // Show names inline, separated by commas
+          const maxVisible = 5; // Show first 5 names
+          let html = '<div style="font-weight: 500; margin-bottom: 6px;">Selected (' + selectionCount + '):</div>';
+          html += '<div style="line-height: 1.8;">';
+          
+          if (selectionCount <= maxVisible) {
+            // Show all names separated by commas
+            html += selectionNames.join(', ');
+          } else {
+            // Show first few names and ellipsis
+            const visibleNames = selectionNames.slice(0, maxVisible);
+            const remaining = selectionCount - maxVisible;
+            html += visibleNames.join(', ') + `, <span class="selection-ellipsis">... and ${remaining} more</span>`;
+          }
+          
+          html += '</div>';
+          
+          infoBox.innerHTML = html;
           infoBox.className = 'info-box';
           createBtn.disabled = variants.length === 0;
         } else {
